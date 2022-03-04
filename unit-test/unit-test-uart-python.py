@@ -64,7 +64,7 @@ class Rotator_SerialPort:
         while data == None or data == b'':
             data = self.serial_port.readline()
         try:
-            dataout = str(data)[2:-1]
+            dataout = str(data)[2:-3]
             print(dataout, data)
         except:
             self.logger.warning('Error converting data')
