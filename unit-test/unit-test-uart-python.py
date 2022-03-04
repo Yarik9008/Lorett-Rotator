@@ -59,6 +59,7 @@ class Rotator_SerialPort:
 
     def feedback(self):
         global DEBUG
+        data = None
         '''прием информации с аппарата'''
         while data == None or data == b'':
             data = self.serial_port.readline()
