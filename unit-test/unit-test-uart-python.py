@@ -1,4 +1,5 @@
 import serial
+from serial.tools import list_ports
 
 DEBUG = False
 
@@ -19,7 +20,7 @@ class PULT_Logging:
 class Rotator_SerialPort:
     def __init__(self,
                  logger: PULT_Logging = PULT_Logging,
-                 port: str = '/dev/ttyACM1',
+                 port: str = list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0],
                  bitrate: int = 9600
                  ):
         global DEBUG
