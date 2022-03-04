@@ -1,25 +1,11 @@
 import serial
-
-DEBUG = False
-
-class PULT_Logging:
-    def __init__(self) -> None:
-        pass
-
-    def critical(*args):
-        pass
-
-    def debug(*args):
-        pass
-
-    def warning(*args):
-        pass
+from serial.tools import list_ports
 
 
 class Rotator_SerialPort:
     def __init__(self,
                  logger: PULT_Logging = PULT_Logging,
-                 port: str = '/dev/ttyACM1',
+                 port: str = str = list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0],
                  bitrate: int = 9600
                  ):
         global DEBUG
@@ -68,19 +54,3 @@ class Rotator_SerialPort:
             self.logger.warning('Error converting data')
             return 'ERROR'
         return dataout
-
-
-
-test_log = PULT_Logging()
-test_pult = Rotator_SerialPort()
-
-if __name__ == '__main__':
-    while True:
-        a = float(input('az: '))
-        h = float(input('he: '))
-        print(test_pult.rotate(a, h))
-        home = input('home: ')
-        if home == '1':
-            print(test_pult.homing())
-
-        
