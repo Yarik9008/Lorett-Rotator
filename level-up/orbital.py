@@ -1,4 +1,5 @@
 # импорт библиотек
+from operator import length_hint
 from pyorbital.orbital import Orbital
 from datetime import datetime, timedelta
 from math import radians, tan, sin, cos
@@ -7,38 +8,55 @@ from requests import get, exceptions
 from bs4 import BeautifulSoup as bs
 from prettytable import PrettyTable
 import matplotlib.pyplot as plt
-#from HardwareLorettRotator import LorettLogging
 
 
 class Lorett_Orbital():
     def __init__(self, stationName: str,
                  lon: float,
                  lat: float,
-                 height: float = 0,
+                 height: float,
+                 path: str,
                  timeZone: int = 0,
-                 azimuthCorrection:float = 0) -> None:
-        '''stationName - название станции, lon - долгота, lat - широта, height - высота над уровнем моря, timeZone - часовой пояс '''
-        self.version = "0.0.4"
-        # масиив станций работающих в l диапазоне 
-        mass_station_l_bend =  ['l2s', 'c4s', 'k4s']
-        # массив станций работающих в укв диапазоне 
-        mass_station_apt_bend = ['lex']
-       
+                 azimuthCorrection: float = 0) -> None:
+        '''Класс для рачета пролетов и простраения треков, также может визуализировать треки.
 
-        if stationName in mass_station_l_bend :
+        In:
+            str stationName - название станции
+
+            float lon - долгота
+
+            float lat - широта
+
+            float height - высота над уровнем моря
+
+            str path - расположение папок и скрипта 
+
+            int timeZone - часовой пояс
+            
+            float azimuthCorrection - корекция по азимуту'''
+
+        self.version = "0.0.4"
+        # масиив станций работающих в l диапазоне
+        mass_station_l_bend = ['l2s', 'c4s', 'k4s']
+        # массив станций работающих в укв диапазоне
+        mass_station_apt_bend = ['lex']
+        
+        # определение типа станции по названию
+        if stationName in mass_station_l_bend:
             self.stationName = stationName
             self.station_bend = 'l'
         elif stationName in mass_station_apt_bend:
             self.stationName = stationName
             self.station_bend = 'apt'
-        
+
         # координаты станции
         self.lon = round(lon, 5)
         self.lat = round(lat, 5)
         self.height = round(height, 5)
         self.timeZone = timeZone
-        # коррекция по азимуту 
+        # коррекция по азимуту
         self.azimuthCorrection = azimuthCorrection
+
         # спутники L-диапазона
         self.satList_l = ["NOAA 18",
                           "NOAA 19",
@@ -52,6 +70,7 @@ class Lorett_Orbital():
         self.satList_apt = ["NOAA 18",
                             "NOAA 19",
                             "METEOR-M 2"]
+
         # конвиг для станций L-диапазона
         self.config_l = {'defaultFocus': 0.77,
                          'defaultRadius': 0.55,
@@ -61,8 +80,23 @@ class Lorett_Orbital():
         self.config_apt = {'defaultHorizon': 15,
                            'minApogee': 20}
 
+        # цвет для визуализации
+        self.mirrorCircleColor = '#66ccff'
+        
+        # путь для сохранения 
+        self.path = path
+
     def _getDays(self, date: datetime) -> int:
-        '''Сервисная функция по переводу месяцев в кол-во дней'''
+        '''Сервисная функция по переводу месяцев в кол-во дней
+
+        In:
+
+            datetime date - дата
+
+        Out:
+
+            int data
+        '''
         daysForMonth = [
             0,
             31,     # January
@@ -85,6 +119,7 @@ class Lorett_Orbital():
 
     def sphericalToDecart(self, azimuth: float, elevation: float) -> tuple:
         """Сервисная  функция по переводу из сферичиский координат в декартовые
+
         In:
                 float azimuth (градусы)
 
@@ -100,13 +135,14 @@ class Lorett_Orbital():
         azimuth = radians((azimuth + self.azimuthCorrection) % 360)
         elevation = radians(elevation)
 
-        y = -(self.mirrorFocus / tan(elevation)) * cos(azimuth)
-        x = -(self.mirrorFocus / tan(elevation)) * sin(azimuth)
+        y = -(self.config_l['defaultFocus'] / tan(elevation)) * cos(azimuth)
+        x = -(self.config_l['defaultFocus'] / tan(elevation)) * sin(azimuth)
 
         return x, y
 
     def degreesToDegreesAndMinutes(self, azimuth: float, elevation: float) -> tuple:
         """Сервисная функция по переводу углов из градусов а минуты
+
         In:
                 float azimuth (градусы)
 
@@ -147,7 +183,10 @@ class Lorett_Orbital():
         return azimuthM, elevationM
 
     def update_tle(self) -> bool:
-        '''Функция по обнавлению TLE-файлов'''
+        '''Функция по обнавлению TLE-файлов
+
+        Out:
+            bool - статус обнавления '''
         try:
             page = get("http://celestrak.com/NORAD/elements/")
             html = bs(page.content, "html.parser")
@@ -165,9 +204,9 @@ class Lorett_Orbital():
 
             # Getting TLE date with client
             try:
-                with open("level-up/tle/tle.txt", "r") as file:
-                    yearInTLE, daysPassInTLE = map(
-                        int, file.readline().strip().split(' '))
+                name = self.path + "/tle/tle.txt"
+                with open(name, "r") as file:
+                    yearInTLE, daysPassInTLE = map(int, file.readline().strip().split(' '))
 
             except:
                 yearInTLE = now.year
@@ -176,7 +215,7 @@ class Lorett_Orbital():
             # if TLE is outdated then update TLE
             if (yearInTLE <= year) and (daysPassInTLE < dayPass):
 
-                with open('level-up/tle/tle.txt', "wb") as file:
+                with open(name, "wb") as file:
                     file.write(
                         f"{now.year} {self._getDays(now)}\n".encode('utf-8'))
                     file.write(
@@ -196,12 +235,13 @@ class Lorett_Orbital():
 
     def getCoordinatesByIp(self) -> tuple:
         """Функция для определения координат станции по ip адресу (потенциально не точно)
+
         Out:
-                float lon
+                float lon - долгота
 
-                float lat
+                float lat - широта
 
-                float alt
+                float height - высота над уровнем моря
         """
         try:
             query = get("http://ip-api.com/json").json()
@@ -232,6 +272,7 @@ class Lorett_Orbital():
 
     def getSatellitePasses(self, start: str, length: int, satellite: str, tol: float = 0.001) -> list:
         """ Функция расчитывающая пролеты спутников
+
         In:
                 str satellite - название спутника
 
@@ -243,7 +284,7 @@ class Lorett_Orbital():
         Out:
                 datetime start, datetime end, datetime apogee 
 
-                время начала, время апогея, время окончания
+                (время начала, время апогея, время окончания)
         """
 
         orb = Orbital(satellite, "level-up/tle/tle.txt")
@@ -251,9 +292,10 @@ class Lorett_Orbital():
             return orb.get_next_passes(start, length, self.lon, self.lat, self.height, tol, self.config_l['defaultHorizon'])
         elif self.station_bend == 'apt':
             return orb.get_next_passes(start, length, self.lon, self.lat, self.height, tol, self.config_apt['defaultHorizon'])
-    
-    def getSchedule(self, start: datetime, length: int, tol: float = 0.001, printTable: bool = True, saveSchedule: bool = False, savePath: str = '') -> PrettyTable:
-        """Функция для составления расписания пролетов 
+
+    def getSchedule(self, start: datetime, length: int, tol: float = 0.001, printTable: bool = True, saveSchedule: bool = False, returnTable: bool = False) -> PrettyTable:
+        """Функция для составления расписания пролетов
+
         In:
                 datetime start  - время старта расчета 
 
@@ -265,8 +307,8 @@ class Lorett_Orbital():
 
                 bool saveSchedule - сохранить табличку
 
-                str savePath - путь для сохранения расписания 
-                
+                bool returnTable - путь для сохранения расписания 
+
         Out:
                 PrettyTable table - вывод расписания в виде таблички 
 
@@ -280,10 +322,12 @@ class Lorett_Orbital():
         td = []
         passesForReturn = []
 
+        # составление расписания в зависимости от диапазона станции
         if self.station_bend == 'l':
             # Iterating through all the passes
             for satellite in self.satList_l:
-                pas = self.getSatellitePasses(start, length, satellite, tol=tol)
+                pas = self.getSatellitePasses(
+                    start, length, satellite, tol=tol)
                 # Flights of a specific satellite
                 passes[satellite] = pas
                 # All passes
@@ -293,13 +337,14 @@ class Lorett_Orbital():
         elif self.station_bend == 'apt':
             # Iterating through all the passes
             for satellite in self.satList_apt:
-                pas = self.getSatellitePasses(start, length, satellite, tol=tol)
+                pas = self.getSatellitePasses(
+                    start, length, satellite, tol=tol)
                 # Flights of a specific satellite
                 passes[satellite] = pas
                 # All passes
                 for i in pas:
                     allPasses.append(i)
-        
+
         # Generate table
         for onePass in sorted(allPasses):
             satName = ''
@@ -318,28 +363,31 @@ class Lorett_Orbital():
                         satName = satellite
                         break
 
-            orb = Orbital(satellite, 'level-up/tle/tle.txt')
+            name  = self.path + '/tle/tle.txt'
+            orb = Orbital(satellite, name)
+
+            # расчет в зависимости от диапазона 
             if self.station_bend == 'l':
                 # if apogee > minApogee
                 if orb.get_observer_look(onePass[2], self.lon, self.lat, self.height)[1] >= self.config_l['defaultHorizon']:
                     passesForReturn.append((orb, onePass))
                     td.append([satName, (onePass[0] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
-                            *map(lambda x: round(x, 2), orb.get_observer_look(onePass[0], self.lon, self.lat, self.height))])
+                               *map(lambda x: round(x, 2), orb.get_observer_look(onePass[0], self.lon, self.lat, self.height))])
                     td.append([satName, (onePass[2] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
-                            *map(lambda x: round(x, 2), orb.get_observer_look(onePass[2], self.lon, self.lat, self.height))])
+                               *map(lambda x: round(x, 2), orb.get_observer_look(onePass[2], self.lon, self.lat, self.height))])
                     td.append([satName, (onePass[1] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
-                            *map(lambda x: round(x, 2), orb.get_observer_look(onePass[1], self.lon, self.lat, self.height))])
+                               *map(lambda x: round(x, 2), orb.get_observer_look(onePass[1], self.lon, self.lat, self.height))])
                     td.append([" ", " ", " ", " "])
             elif self.station_bend == 'apt':
                 # if apogee > minApogee
                 if orb.get_observer_look(onePass[2], self.lon, self.lat, self.height)[1] >= self.config_apt['defaultHorizon']:
                     passesForReturn.append((orb, onePass))
                     td.append([satName, (onePass[0] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
-                            *map(lambda x: round(x, 2), orb.get_observer_look(onePass[0], self.lon, self.lat, self.height))])
+                               *map(lambda x: round(x, 2), orb.get_observer_look(onePass[0], self.lon, self.lat, self.height))])
                     td.append([satName, (onePass[2] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
-                            *map(lambda x: round(x, 2), orb.get_observer_look(onePass[2], self.lon, self.lat, self.height))])
+                               *map(lambda x: round(x, 2), orb.get_observer_look(onePass[2], self.lon, self.lat, self.height))])
                     td.append([satName, (onePass[1] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
-                            *map(lambda x: round(x, 2), orb.get_observer_look(onePass[1], self.lon, self.lat, self.height))])
+                               *map(lambda x: round(x, 2), orb.get_observer_look(onePass[1], self.lon, self.lat, self.height))])
                     td.append([" ", " ", " ", " "])
 
         table = PrettyTable(th)
@@ -374,15 +422,20 @@ class Lorett_Orbital():
 
         if saveSchedule:
             try:
-                with open(savePath + 'Schedule.txt', 'w') as file:
+                name = self.path + '/schedule/Schedule_' + '-'.join('-'.join('-'.join(str(datetime.now()).split()).split('.')).split(':')) + '.txt'
+                with open(name, 'w') as file:
                     file.write(schedule)
 
             except Exception as e:
                 print("ERROR:", e)
+                return None
 
-        return passesForReturn
-
-    def generateL2STrack(self, satellite: str, satPass: list, currentPath: str, printTrack: bool = False, saveTrack: bool = True):
+        if returnTable:
+            return schedule
+        else:
+            return passesForReturn
+        
+    def generateL2STrack(self, satellite: str, satPass: list, printTrack: bool = True, viewPlotTrack:bool = False, savePlotTrack:bool =False ):
         """Функция для генерирования трек файла для L2s
         In:
                 str satellite - название спутника
@@ -391,23 +444,21 @@ class Lorett_Orbital():
 
                 bool printTrack - вывод трека в пролет 
 
-                bool saveTrack - сохранение трека 
+                bool viewPlotTrack - отображение визуализации трека 
+
+                bool  savePlotTrack - сохранение визуализации трека
         Out:
-                str times[] - время
-
-                str azimuth:minutes[] - азимут
-
-                str elevation:minutes[] - высота 
+                list (время, азимут, высота) - трек для отслеживания спутника 
 
         """
+        nametle = self.path + "/tle/tle.txt"
 
-        orb = Orbital(satellite, "level-up/tle/tle.txt")
+        orb = Orbital(satellite, nametle)
 
-        fileName = f"{satellite.replace(' ', '-')}_L2S_{satPass[0].strftime('%Y-%m-%dT%H-%M')}.txt"
+        nametrack = self.path + f"/tracks/{satellite.replace(' ', '-')}_L2S_{satPass[0].strftime('%Y-%m-%dT%H-%M')}.txt"
 
-        with open(currentPath + "tracks" + fileName, "w") as file:
+        with open(nametrack, "w") as file:
 
-            print("Pass duration:")
             print(str((satPass[1]-satPass[0])).rsplit('.', 1)[0])
 
             times = []
@@ -420,7 +471,7 @@ class Lorett_Orbital():
 
             metaData = f"Link2Space track file / LorettOrbital {self.version}\n" +     \
                        f"StationName: {self.stationName}\n" +                       \
-                       f"Station Position: {self.lon}\t{self.lat}\t{self.alt}\n" +  \
+                       f"Station Position: {self.lon}\t{self.lat}\t{self.height}\n" +  \
                        f"Satellite: {satellite}\n" +                                \
                        f"Start date & time: {startTime}\n" +                        \
                        f"Orbit: {orb.get_orbit_number(satPass[0])}\n" +             \
@@ -437,7 +488,7 @@ class Lorett_Orbital():
 
                 # Convert degrees to degrees:minutes
                 observerLook = orb.get_observer_look(
-                    dateTimeForCalc, self.lon, self.lat, self.alt)
+                    dateTimeForCalc, self.lon, self.lat, self.height)
 
                 sphCoords = self.degreesToDegreesAndMinutes(*observerLook)
 
@@ -455,41 +506,37 @@ class Lorett_Orbital():
 
                 print(string, end="")
 
-        if printTrack or saveTrack:
-            self.printAndSavePlotTrack(coordsX, coordsY, satellite=satellite, start=startTime,
-                                       currentPath=currentPath, show=printTrack, save=saveTrack)
+        if printTrack or viewPlotTrack or savePlotTrack:
+            self.printAndSavePlotTrack(coordsX, coordsY, satellite=satellite, start=startTime, viewPlotTrack=viewPlotTrack, savePlotTrack=savePlotTrack,  printTrack=printTrack)
 
-        return times, sphCoordsAZ, sphCoordsEL
+        return list(zip(times, sphCoordsAZ, sphCoordsEL))
 
-    def printAndSavePlotTrack(self, coordsX: list, coordsY: list, satellite: str = "Untitled", start: str = "", currentPath: str = "", save: bool = True, show: bool = False) -> None:
-        """
-        Function that draws the path of the irradiator on the pyplot scheme
-
+    def printAndSavePlotTrack(self, coordsX: list, coordsY: list, satellite: str = "Untitled", start: str = "", viewPlotTrack: bool = False, savePlotTrack:bool =False, printTrack: bool = True) -> None:
+        """Функция для отрисовки трека и сохренения его в файл
         In:
-                float coordsX[]
+                float coordsX[] - массив координат по оси х
 
-                float coordsY[]
+                float coordsY[] - массив координат по оси у
 
-                str satellite
+                str satellite - название спутника
 
-                str start
+                str start - время начала пролета
 
-                str currentPath
+                bool viewPlotTrack - отрисовка и вывод картинки трека без сохранения 
 
-                bool save
+                bool savePlotTrack - сохранение визуализации трека 
 
-                bool show
-
+                bool printTrack - вывод трека в консоль 
         Out:
                 None
         """
 
-        if save or show:
+        if viewPlotTrack or savePlotTrack:
             ax = plt.gca()
             ax.set_aspect('equal', adjustable='box')
 
             # Plot mirror
-            circle = plt.Circle((0, 0), self.mirrorRadius,
+            circle = plt.Circle((0, 0), self.config_l['defaultRadius'],
                                 color=self.mirrorCircleColor)
             ax.add_patch(circle)
 
@@ -498,8 +545,7 @@ class Lorett_Orbital():
             fig.canvas.manager.set_window_title(satellite + "   " + start)
 
             # Generate OX and OY Axes
-            steps = list(
-                round(i, 1) for i in arange(-self.mirrorRadius, self.mirrorRadius + 0.1, 0.1))
+            steps = list(round(i, 1) for i in arange(-self.config_l['defaultRadius'], self.config_l['defaultRadius'] + 0.1, 0.1))
 
             plt.title(satellite + "   " + start)
 
@@ -515,50 +561,77 @@ class Lorett_Orbital():
             plt.plot(coordsX[-1], coordsY[-1], ".r")
 
             # Plot north
-            plt.plot(0, self.mirrorRadius, "^r")
+            plt.plot(0, self.config_l['defaultRadius'], "^r")
 
-            if save:
-                fileName = f"{satellite.replace(' ', '-')}_{start.replace('   ', '-').replace(':', '-')}.png"
-                plt.savefig(currentPath +  "tracksSchemes" + fileName)
+            if savePlotTrack:
+                fileName = self.path + f"/tracksSchemes/TracksSchemes_{satellite.replace(' ', '-')}_{start.replace('   ', '-').replace(':', '-')}.png"
+                plt.savefig(fileName)
 
-            if show:
+            if viewPlotTrack:
                 plt.show()
 
+    def setCoordinates(self, lon: float, lat: float, height: float) -> None:
+        '''Функция для установки местоположения станции
 
-    def generateNeboscopeTrack(satellite, satPass, printTrack=True, saveTrack=True):
-        pass
+        In:
 
-    def getCoordsWithNeboscopeTrack(filePath, printTrack=True, saveTrack=True):
-        pass
+            float lon - долгота
 
-    def setCoordinates(self, lon: float, lat: float, alt: float) -> None:
+            float lat - широта
+
+            float height - высота над уровнем моря'''
+
         self.lon = round(lon, 5)
         self.lat = round(lat, 5)
-        self.height = round(alt, 5)
+        self.height = round(height, 5)
 
-    def findPasses(self, start: datetime, length: int = 30, currentPath: str = "", printTrack: bool = False, saveTrack: bool = True):
+    def nextPasses(self, printTrack: bool = False, viewPlotTrack:bool = False, savePlotTrack:bool =False):
+        '''Функция для расчета трека ближайщего следующего пролета
+
+        In:
+            bool  printTrack - вывод трека в консоль
+
+            bool viewPlotTrack - отображение визуализации трека 
+
+            bool  savePlotTrack - сохранение визуализации трека
+
+        Out:
+
+            list (время, азимут, высота) - трек для отслеживания спутника'''
+
+        start = datetime.now()
+        length = 12
 
         passesList = self.getSchedule(start, length, printTable=False)
-        print(passesList)
+
         count = 1
         td = []
 
         for satPass, satPasTimeList in passesList:
 
-            td.append([count, satPass.satellite_name, *satPasTimeList, 
-            round(satPass.get_observer_look(satPasTimeList[2], self.lon, self.lat, self.height)[1], 2)])
+            td.append([count, satPass.satellite_name, *satPasTimeList, round(satPass.get_observer_look(satPasTimeList[2], self.lon, self.lat, self.height)[1], 2)])
             td.append(("", "", "", "", "", ""))
 
             count += 1
 
-        number = 1
+        satPass, satPasTimeList = passesList[0]
 
-        while number >= len(passesList):  
-            satPass, satPasTimeList = passesList[number]
-            if self.station_bend == 'l':
-                self.generateL2STrack(satPass.satellite_name, satPasTimeList, currentPath=currentPath, saveTrack=saveTrack, printTrack=printTrack)
-            # elif self.trackFormat == "c4s":
-            #     self.generateC4STrack(satPass.satellite_name, satPasTimeList,
-            #                           currentPath=currentPath, saveTrack=saveTrack, printTrack=printTrack)
-            else:
-                print("Format is not recognized")
+        if self.station_bend == 'l':
+            return self.generateL2STrack(satPass.satellite_name, satPasTimeList, printTrack=printTrack, viewPlotTrack=viewPlotTrack,  savePlotTrack=savePlotTrack)
+        else:
+            print("Format is not recognized")
+            return None
+
+
+if __name__ == '__main__':
+    lat, lon, height = 55.3970, 43.8302, 130  # Azimuth spb
+    path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
+    start = datetime.now()
+    lor_or = Lorett_Orbital('lex', lon, lat, height, path, timeZone=0)
+    # Обновление tle-файлов
+    #print(lor_or.update_tle()) 
+    # Определение координат станции по Ip адресу
+    #print(lor_or.getCoordinatesByIp())
+    # составление расписания
+    print(lor_or.getSchedule(start, 48, saveSchedule=True, printTable=False, returnTable=True))
+    #print(lor_or.nextPasses())
