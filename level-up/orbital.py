@@ -635,6 +635,6 @@ if __name__ == '__main__':
     # Определение координат станции по Ip адресу
     #print(lor_or.getCoordinatesByIp())
     # составление расписания
-    #print(lor_or.getSchedule(start, 48, saveSchedule=True, printTable=False, returnTable=True))
-    pprint(lor_or.nextPasses(savePlotTrack=True))
+    print(lor_or.getSchedule(start, 48, saveSchedule=True, printTable=False, returnTable=True))
+    #pprint(lor_or.nextPasses(savePlotTrack=True))
  
