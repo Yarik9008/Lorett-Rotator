@@ -435,7 +435,7 @@ class Lorett_Orbital():
         else:
             return passesForReturn
         
-    def generateL2STrack(self, satellite: str, satPass: list, printTrack: bool = True, viewPlotTrack:bool = False, savePlotTrack:bool =False ):
+    def generateL2STrack(self, satellite: str, satPass: list, printTrack: bool = False, viewPlotTrack:bool = False, savePlotTrack:bool =False ):
         """Функция для генерирования трек файла для L2s
         In:
                 str satellite - название спутника
@@ -459,7 +459,7 @@ class Lorett_Orbital():
 
         with open(nametrack, "w") as file:
 
-            print(str((satPass[1]-satPass[0])).rsplit('.', 1)[0])
+            #print(str((satPass[1]-satPass[0])).rsplit('.', 1)[0])
 
             times = []
             coordsX = []
@@ -504,7 +504,7 @@ class Lorett_Orbital():
                 string = f"{strTime}   {sphCoords[0]}   {sphCoords[1]}\n"
                 file.write(string)
 
-                print(string, end="")
+                #print(string, end="")
 
         if printTrack or viewPlotTrack or savePlotTrack:
             self.printAndSavePlotTrack(coordsX, coordsY, satellite=satellite, start=startTime, viewPlotTrack=viewPlotTrack, savePlotTrack=savePlotTrack,  printTrack=printTrack)
@@ -599,7 +599,7 @@ class Lorett_Orbital():
 
             list (время, азимут, высота) - трек для отслеживания спутника'''
 
-        start = datetime.now()
+        start = datetime.utcnow()
         length = 12
 
         passesList = self.getSchedule(start, length, printTable=False)
@@ -626,12 +626,13 @@ class Lorett_Orbital():
 if __name__ == '__main__':
     lat, lon, height = 55.3970, 43.8302, 130  # Azimuth spb
     path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
-    start = datetime.now()
-    lor_or = Lorett_Orbital('lex', lon, lat, height, path, timeZone=0)
+    start = datetime.utcnow()
+    lor_or = Lorett_Orbital('l2s', lon, lat, height, path, timeZone=3)
     # Обновление tle-файлов
-    #print(lor_or.update_tle()) 
+    print(lor_or.update_tle()) 
     # Определение координат станции по Ip адресу
     #print(lor_or.getCoordinatesByIp())
     # составление расписания
-    print(lor_or.getSchedule(start, 48, saveSchedule=True, printTable=False, returnTable=True))
-    #print(lor_or.nextPasses())
+    #print(lor_or.getSchedule(start, 48, saveSchedule=True, printTable=False, returnTable=True))
+    print(lor_or.nextPasses(savePlotTrack=True))
+ 
