@@ -626,6 +626,7 @@ class Lorett_Orbital():
 if __name__ == '__main__':
     lat, lon, height = 55.3970, 43.8302, 130  # Azimuth spb
     path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
+    path = '/home/pi/Lorett-Rotator/level-up'
     start = datetime.utcnow()
     lor_or = Lorett_Orbital('l2s', lon, lat, height, path, timeZone=3)
     # Обновление tle-файлов
