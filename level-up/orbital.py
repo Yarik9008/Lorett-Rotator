@@ -8,7 +8,7 @@ from requests import get, exceptions
 from bs4 import BeautifulSoup as bs
 from prettytable import PrettyTable
 import matplotlib.pyplot as plt
-
+from pprint import pprint
 
 class Lorett_Orbital():
     def __init__(self, stationName: str,
@@ -626,14 +626,14 @@ class Lorett_Orbital():
 if __name__ == '__main__':
     lat, lon, height = 55.3970, 43.8302, 130  # Azimuth spb
     path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
-    path = '/home/pi/Lorett-Rotator/level-up'
+    path = '/home/pi/Lorett-Rotator'
     start = datetime.utcnow()
     lor_or = Lorett_Orbital('l2s', lon, lat, height, path, timeZone=3)
     # Обновление tle-файлов
-    print(lor_or.update_tle()) 
+    #print(lor_or.update_tle()) 
     # Определение координат станции по Ip адресу
     #print(lor_or.getCoordinatesByIp())
     # составление расписания
     #print(lor_or.getSchedule(start, 48, saveSchedule=True, printTable=False, returnTable=True))
-    print(lor_or.nextPasses(savePlotTrack=True))
+    pprint(lor_or.nextPasses(savePlotTrack=True))
  
