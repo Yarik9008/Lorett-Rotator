@@ -286,8 +286,9 @@ class Lorett_Orbital():
 
                 (время начала, время апогея, время окончания)
         """
-
-        orb = Orbital(satellite, "level-up/tle/tle.txt")
+        nametle = self.path + '/tle/tle.txt'
+        
+        orb = Orbital(satellite, nametle)
         if self.station_bend == 'l':
             return orb.get_next_passes(start, length, self.lon, self.lat, self.height, tol, self.config_l['defaultHorizon'])
         elif self.station_bend == 'apt':
