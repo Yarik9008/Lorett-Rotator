@@ -3,9 +3,9 @@ from pprint import pprint
 
 lat, lon, height = 55.3970, 55.3970, 130  # Azimuth spb
 
-path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
+#path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
 
-#path = '/home/pi/Lorett-Rotator/level-up'
+path = '/home/pi/Lorett-Rotator/level-up'
 
 lor_or = Lorett_Orbital('l2s', lon, lat, height, path, timeZone=3)
 
