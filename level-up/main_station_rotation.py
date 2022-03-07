@@ -12,8 +12,8 @@ class Main_Lorett_Rotator:
 
         self.stationName = 'r8s' 
 
-        self.path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
-        #self.path = '/home/pi/Lorett-Rotator/level-up'
+        #self.path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
+        self.path = '/home/pi/Lorett-Rotator/level-up'
 
         self.lat = 55.3970
         self.lon = 55.3970
@@ -41,7 +41,7 @@ class Main_Lorett_Rotator:
     def tracking(self,track:tuple):
         '''Функция для отслеживания спутника во время пролета'''
         self.logger.info(f'start tracking satellite {track[0]}')
-        
+
         for steps in track[1]:
             self.logger.debug(f'Go to pozitions: az: {steps[1]} el: {steps[2]}')
             sleep(1)
