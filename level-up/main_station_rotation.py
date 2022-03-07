@@ -45,9 +45,7 @@ class Main_Lorett_Rotator:
         for steps in track[1]:
             self.logger.debug(f'Go to pozitions: az: {steps[1]} el: {steps[2]}')
             sleep(1)
-
-        
-        
+  
 
     def sleep_to_next(self, time_sleep:datetime, nameSatellite:str):
         time_sleep = int(time_sleep.total_seconds())
@@ -65,7 +63,7 @@ class Main_Lorett_Rotator:
             self.schedule = self.schedule[1:]
             # вычисляем время до пролета 
             sleep_time = satPas[1][0] - datetime.utcnow()
-            #self.sleep_to_next(sleep_time,satPas[0])
+            self.sleep_to_next(sleep_time,satPas[0])
             self.tracking(self.orbital.nextPasses())
             break
             
