@@ -2,6 +2,7 @@ import serial
 import logging
 from serial.tools import list_ports
 from datetime import datetime
+import coloredlogs
 
 
 class LorettLogging:
@@ -27,6 +28,10 @@ class LorettLogging:
         # инициализация обработчиков
         self.mylogs.addHandler(self.file)
         self.mylogs.addHandler(self.stream)
+        
+        coloredlogs.install(level=logging.DEBUG, logger=self.mylogs,
+                            fmt='%(asctime)s [%(levelname)s] - %(message)s')
+                            
         self.mylogs.info('start-logging')
 
     def debug(self, message):
@@ -78,9 +83,9 @@ class Rotator_SerialPort:
         if self.DEBUG:
             self.logger.debug('Send data: ' + f'$rotation {azimut} {height};\n')
         if self.feedback() == 'OK':
-            return 'OK'
+            return True
         else:
-            return 'ERROR'
+            return False
 
     def homing(self):
         ''' обнуление антенны по концевикам'''
@@ -89,9 +94,9 @@ class Rotator_SerialPort:
         if self.DEBUG:
             self.logger.debug('Send data: $homing;\n')
         if self.feedback() == 'OK':
-            return 'OK'
+            return True
         else:
-            return 'ERROR'
+            return False
 
 
     def feedback(self):
@@ -102,5 +107,5 @@ class Rotator_SerialPort:
             dataout = str(data)[2:-1]
         except:
             self.logger.warning('Error converting data')
-            return 'ERROR'
+            return None
         return dataout
