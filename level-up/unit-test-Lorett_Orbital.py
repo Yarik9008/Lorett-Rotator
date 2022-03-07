@@ -3,12 +3,30 @@ from orbital import *
 from pprint import pprint
 
 lat, lon, height = 55.3970, 43.8302, 130  # Azimuth spb
-start = datetime.now()
-lor_or = Lorett_Orbital('l2s',lon, lat, height, timeZone=3)
+
+path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
+
+#path = '/home/pi/Lorett-Rotator/level-up'
+
+start = datetime.utcnow()
+
+lor_or = Lorett_Orbital('l2s', lon, lat, height, path, timeZone=3)
+
 # Обновление tle-файлов
-#print(lor_or.update_tle())
+# print(lor_or.update_tle())
+
 # Определение координат станции по Ip адресу
-#print(lor_or.getCoordinatesByIp())
-# составление расписания 
-#print(lor_or.getSchedule(start, 48, saveSchedule=True, printTable=False))
-pprint(lor_or.findPasses())
+# print(lor_or.getCoordinatesByIp())
+
+# составление расписания и вывод в виде таблички 
+lor_or.getSchedule(start, 48, printTable=True)
+
+# составление расписания и возвращение его в виде списка 
+pprint(lor_or.getSchedule(start, 48, returnScheduleNameSatellite=True))
+
+# составление трека в виде списка 
+pprint(lor_or.nextPasses())
+
+# составление сохранение и отрисовка трека 
+lor_or.nextPasses(printTrack=True, viewPlotTrack=True, savePlotTrack=True)
+

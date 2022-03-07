@@ -294,7 +294,7 @@ class Lorett_Orbital():
         elif self.station_bend == 'apt':
             return orb.get_next_passes(start, length, self.lon, self.lat, self.height, tol, self.config_apt['defaultHorizon'])
 
-    def getSchedule(self, start: datetime, length: int, tol: float = 0.001, printTable: bool = True, saveSchedule: bool = False, returnTable: bool = False) -> PrettyTable:
+    def getSchedule(self, start: datetime, length: int, tol: float = 0.001, printTable: bool = False, saveSchedule: bool = False, returnTable: bool = False, returnScheduleNameSatellite:bool = False) -> PrettyTable:
         """Функция для составления расписания пролетов
 
         In:
@@ -308,8 +308,9 @@ class Lorett_Orbital():
 
                 bool saveSchedule - сохранить табличку
 
-                bool returnTable - путь для сохранения расписания 
+                bool returnTable - вернуть табличку в виде строки
 
+                bool  returnScheduleNameSatellite - вывод в виде списка с названиями спутников 
         Out:
                 PrettyTable table - вывод расписания в виде таблички 
 
@@ -433,6 +434,11 @@ class Lorett_Orbital():
 
         if returnTable:
             return schedule
+        elif returnScheduleNameSatellite:
+            massout = []
+            for pas in passesForReturn:
+                massout.append((pas[0].satellite_name, pas[1]))
+            return massout
         else:
             return passesForReturn
         
@@ -449,7 +455,7 @@ class Lorett_Orbital():
 
                 bool  savePlotTrack - сохранение визуализации трека
         Out:
-                list (время, азимут, высота) - трек для отслеживания спутника 
+                tuple (название спутника [время, азимут, высота]) - трек для отслеживания спутника 
 
         """
         nametle = self.path + "/tle/tle.txt"
@@ -510,7 +516,7 @@ class Lorett_Orbital():
         if printTrack or viewPlotTrack or savePlotTrack:
             self.printAndSavePlotTrack(coordsX, coordsY, satellite=satellite, start=startTime, viewPlotTrack=viewPlotTrack, savePlotTrack=savePlotTrack,  printTrack=printTrack)
 
-        return list(zip(times, sphCoordsAZ, sphCoordsEL))
+        return satellite, list(zip(times, sphCoordsAZ, sphCoordsEL))
 
     def printAndSavePlotTrack(self, coordsX: list, coordsY: list, satellite: str = "Untitled", start: str = "", viewPlotTrack: bool = False, savePlotTrack:bool =False, printTrack: bool = True) -> None:
         """Функция для отрисовки трека и сохренения его в файл
@@ -597,8 +603,7 @@ class Lorett_Orbital():
             bool  savePlotTrack - сохранение визуализации трека
 
         Out:
-
-            list (время, азимут, высота) - трек для отслеживания спутника'''
+            tuple (название спутника [время, азимут, высота]) - трек для отслеживания спутника'''
 
         start = datetime.utcnow()
         length = 12
@@ -623,18 +628,3 @@ class Lorett_Orbital():
             print("Format is not recognized")
             return None
 
-
-if __name__ == '__main__':
-    lat, lon, height = 55.3970, 43.8302, 130  # Azimuth spb
-    path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
-    path = '/home/pi/Lorett-Rotator/level-up'
-    start = datetime.utcnow()
-    lor_or = Lorett_Orbital('l2s', lon, lat, height, path, timeZone=3)
-    # Обновление tle-файлов
-    #print(lor_or.update_tle()) 
-    # Определение координат станции по Ip адресу
-    #print(lor_or.getCoordinatesByIp())
-    # составление расписания
-    print(lor_or.getSchedule(start, 48, saveSchedule=True, printTable=False, returnTable=True))
-    #pprint(lor_or.nextPasses(savePlotTrack=True))
- 
