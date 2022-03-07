@@ -9,8 +9,8 @@ class Main_Lorett_Rotator:
 
         self.stationName = 'l2s' 
 
-        self.path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
-        #self.path = '/home/pi/Lorett-Rotator/level-up'
+        #self.path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
+        self.path = '/home/pi/Lorett-Rotator/level-up'
 
         self.lat = 55.3970
         self.lon = 55.3970
