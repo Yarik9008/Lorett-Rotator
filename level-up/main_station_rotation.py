@@ -7,7 +7,7 @@ class Main_Lorett_Rotator:
 
     def __init__(self) -> None:
 
-        self.stationName = 'l2s' 
+        self.stationName = 'r8s' 
 
         #self.path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
         self.path = '/home/pi/Lorett-Rotator/level-up'
