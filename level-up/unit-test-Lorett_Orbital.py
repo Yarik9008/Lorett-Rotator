@@ -1,4 +1,3 @@
-from re import T
 from orbital import *
 from pprint import pprint
 
@@ -17,14 +16,14 @@ lor_or = Lorett_Orbital('l2s', lon, lat, height, path, timeZone=3)
 # print(lor_or.getCoordinatesByIp())
 
 # составление расписания и вывод в виде таблички 
-lor_or.getSchedule(48, printTable=True)
+lor_or.getSchedule(12, printTable=True)
 
 # составление расписания и возвращение его в виде списка 
-pprint(lor_or.getSchedule(48, returnScheduleNameSatellite=True))
+pprint(lor_or.getSchedule(12, returnScheduleNameSatellite=True))
 
 # составление трека в виде списка 
 pprint(lor_or.nextPasses())
 
 # составление сохранение и отрисовка трека 
-lor_or.nextPasses(printTrack=True, viewPlotTrack=True, savePlotTrack=True)
+lor_or.nextPasses(printTrack=True, viewPlotTrack=False, savePlotTrack=False)
 

@@ -10,6 +10,7 @@ from prettytable import PrettyTable
 import matplotlib.pyplot as plt
 from pprint import pprint
 
+
 class Lorett_Orbital():
     def __init__(self, stationName: str,
                  lon: float,
@@ -32,22 +33,27 @@ class Lorett_Orbital():
             str path - расположение папок и скрипта 
 
             int timeZone - часовой пояс
-            
+
             float azimuthCorrection - корекция по азимуту'''
 
         self.version = "0.0.4"
-        # масиив станций работающих в l диапазоне
-        mass_station_l_bend = ['l2s', 'c4s', 'k4s']
+        # масcив станций работающих в l диапазоне по киниматике переноса облучателя в факальной плоскости
+        mass_station_l_fokal = ['l2s', 'c4s', 'k4s']
         # массив станций работающих в укв диапазоне
-        mass_station_apt_bend = ['lex']
-        
+        mass_station_apt = ['lex']
+        # массив станций работающих по киниматике полноповоротного перемещения приемной части
+        mass_station_rotator = ['r8s']
+
         # определение типа станции по названию
-        if stationName in mass_station_l_bend:
+        if stationName in mass_station_l_fokal:
             self.stationName = stationName
-            self.station_bend = 'l'
-        elif stationName in mass_station_apt_bend:
+            self.station_type = 'l'
+        elif stationName in mass_station_apt:
             self.stationName = stationName
-            self.station_bend = 'apt'
+            self.station_type = 'apt'
+        elif stationName in mass_station_rotator:
+            self.stationName = stationName
+            self.station_type = 'rot'
 
         # координаты станции
         self.lon = round(lon, 5)
@@ -71,19 +77,22 @@ class Lorett_Orbital():
                             "NOAA 19",
                             "METEOR-M 2"]
 
-        # конвиг для станций L-диапазона
-        self.config_l = {'defaultFocus': 0.77,
-                         'defaultRadius': 0.55,
-                         'defaultHorizon': 55,
-                         'minApogee': 65}
+        # конвиг для станций L-диапазона с киниматикой перемещения облучателя в факальной плоскости
+        self.config_l_fokal = {'defaultFocus': 0.77,
+                               'defaultRadius': 0.55,
+                               'defaultHorizon': 55,
+                               'minApogee': 65}
+        # конфиг для станций с полноповотным механизмом
+        self.config_rotator = {'defaultHorizon': 15,
+                               'minApogee': 35}
         # конфиг для станций укв диапазона
         self.config_apt = {'defaultHorizon': 15,
                            'minApogee': 20}
 
         # цвет для визуализации
         self.mirrorCircleColor = '#66ccff'
-        
-        # путь для сохранения 
+
+        # путь для сохранения
         self.path = path
 
     def _getDays(self, date: datetime) -> int:
@@ -135,8 +144,8 @@ class Lorett_Orbital():
         azimuth = radians((azimuth + self.azimuthCorrection) % 360)
         elevation = radians(elevation)
 
-        y = -(self.config_l['defaultFocus'] / tan(elevation)) * cos(azimuth)
-        x = -(self.config_l['defaultFocus'] / tan(elevation)) * sin(azimuth)
+        y = -(self.config_l_fokal['defaultFocus'] / tan(elevation)) * cos(azimuth)
+        x = -(self.config_l_fokal['defaultFocus'] / tan(elevation)) * sin(azimuth)
 
         return x, y
 
@@ -206,7 +215,8 @@ class Lorett_Orbital():
             try:
                 name = self.path + "/tle/tle.txt"
                 with open(name, "r") as file:
-                    yearInTLE, daysPassInTLE = map(int, file.readline().strip().split(' '))
+                    yearInTLE, daysPassInTLE = map(
+                        int, file.readline().strip().split(' '))
 
             except:
                 yearInTLE = now.year
@@ -287,14 +297,16 @@ class Lorett_Orbital():
                 (время начала, время апогея, время окончания)
         """
         nametle = self.path + '/tle/tle.txt'
-        
-        orb = Orbital(satellite, nametle)
-        if self.station_bend == 'l':
-            return orb.get_next_passes(start, length, self.lon, self.lat, self.height, tol, self.config_l['defaultHorizon'])
-        elif self.station_bend == 'apt':
-            return orb.get_next_passes(start, length, self.lon, self.lat, self.height, tol, self.config_apt['defaultHorizon'])
 
-    def getSchedule(self, length: int, tol: float = 0.001, printTable: bool = False, saveSchedule: bool = False, returnTable: bool = False, returnScheduleNameSatellite:bool = False) -> PrettyTable:
+        orb = Orbital(satellite, nametle)
+        if self.station_type == 'l':
+            return orb.get_next_passes(start, length, self.lon, self.lat, self.height, tol, self.config_l_fokal['defaultHorizon'])
+        elif self.station_type == 'apt':
+            return orb.get_next_passes(start, length, self.lon, self.lat, self.height, tol, self.config_apt['defaultHorizon'])
+        elif self.station_type == 'rot':
+            return orb.get_next_passes(start, length, self.lon, self.lat, self.height, tol, self.config_rotator['defaultHorizon'])
+
+    def getSchedule(self, length: int, tol: float = 0.001, printTable: bool = False, saveSchedule: bool = False, returnTable: bool = False, returnScheduleNameSatellite: bool = False) -> PrettyTable:
         """Функция для составления расписания пролетов
 
         In:
@@ -324,7 +336,7 @@ class Lorett_Orbital():
         passesForReturn = []
 
         # составление расписания в зависимости от диапазона станции
-        if self.station_bend == 'l':
+        if self.station_type == 'l' or self.station_type == 'rot':
             # Iterating through all the passes
             for satellite in self.satList_l:
                 pas = self.getSatellitePasses(
@@ -335,7 +347,7 @@ class Lorett_Orbital():
                 for i in pas:
                     allPasses.append(i)
 
-        elif self.station_bend == 'apt':
+        elif self.station_type == 'apt':
             # Iterating through all the passes
             for satellite in self.satList_apt:
                 pas = self.getSatellitePasses(
@@ -349,14 +361,14 @@ class Lorett_Orbital():
         # Generate table
         for onePass in sorted(allPasses):
             satName = ''
-            if self.station_bend == 'l':
+            if self.station_type == 'l' or self.station_type == 'rot':
                 # Going through the list of satellites
                 for satellite in self.satList_l:
                     # If the selected span corresponds to a satellite
                     if onePass in passes[satellite]:
                         satName = satellite
                         break
-            elif self.station_bend == 'apt':
+            elif self.station_type == 'apt':
                 # Going through the list of satellites
                 for satellite in self.satList_l:
                     # If the selected span corresponds to a satellite
@@ -364,13 +376,13 @@ class Lorett_Orbital():
                         satName = satellite
                         break
 
-            name  = self.path + '/tle/tle.txt'
+            name = self.path + '/tle/tle.txt'
             orb = Orbital(satellite, name)
 
-            # расчет в зависимости от диапазона 
-            if self.station_bend == 'l':
+            # расчет в зависимости от типа станций
+            if self.station_type == 'l':
                 # if apogee > minApogee
-                if orb.get_observer_look(onePass[2], self.lon, self.lat, self.height)[1] >= self.config_l['defaultHorizon']:
+                if orb.get_observer_look(onePass[2], self.lon, self.lat, self.height)[1] >= self.config_l_fokal['defaultHorizon']:
                     passesForReturn.append((orb, onePass))
                     td.append([satName, (onePass[0] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
                                *map(lambda x: round(x, 2), orb.get_observer_look(onePass[0], self.lon, self.lat, self.height))])
@@ -379,9 +391,22 @@ class Lorett_Orbital():
                     td.append([satName, (onePass[1] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
                                *map(lambda x: round(x, 2), orb.get_observer_look(onePass[1], self.lon, self.lat, self.height))])
                     td.append([" ", " ", " ", " "])
-            elif self.station_bend == 'apt':
+
+            elif self.station_type == 'apt':
                 # if apogee > minApogee
                 if orb.get_observer_look(onePass[2], self.lon, self.lat, self.height)[1] >= self.config_apt['defaultHorizon']:
+                    passesForReturn.append((orb, onePass))
+                    td.append([satName, (onePass[0] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
+                               *map(lambda x: round(x, 2), orb.get_observer_look(onePass[0], self.lon, self.lat, self.height))])
+                    td.append([satName, (onePass[2] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
+                               *map(lambda x: round(x, 2), orb.get_observer_look(onePass[2], self.lon, self.lat, self.height))])
+                    td.append([satName, (onePass[1] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
+                               *map(lambda x: round(x, 2), orb.get_observer_look(onePass[1], self.lon, self.lat, self.height))])
+                    td.append([" ", " ", " ", " "])
+            
+            elif self.station_type == 'rot':
+                # if apogee > minApogee
+                if orb.get_observer_look(onePass[2], self.lon, self.lat, self.height)[1] >= self.config_rotator['defaultHorizon']:
                     passesForReturn.append((orb, onePass))
                     td.append([satName, (onePass[0] + timedelta(hours=self.timeZone)).strftime("%Y.%m.%d %H:%M:%S"),
                                *map(lambda x: round(x, 2), orb.get_observer_look(onePass[0], self.lon, self.lat, self.height))])
@@ -407,12 +432,17 @@ class Lorett_Orbital():
         schedule += f"Start: {start.strftime('%Y.%m.%d %H:%M:%S')}\n"
         schedule += f"Stop:  {stop.strftime('%Y.%m.%d %H:%M:%S')}\n"
 
-        if self.station_bend == 'l':
-            schedule += f"Minimum Elevation: {self.config_l['defaultHorizon']}°\n"
-            schedule += f"Minimum Apogee: {self.config_l['minApogee']}°\n"
-        elif self.station_bend == 'apt':
+        if self.station_type == 'l':
+            schedule += f"Minimum Elevation: {self.config_l_fokal['defaultHorizon']}°\n"
+            schedule += f"Minimum Apogee: {self.config_l_fokal['minApogee']}°\n"
+
+        elif self.station_type == 'apt':
             schedule += f"Minimum Elevation: {self.config_apt['defaultHorizon']}°\n"
             schedule += f"Minimum Apogee: {self.config_apt['minApogee']}°\n"
+        
+        elif self.station_type == 'rot':
+            schedule += f"Minimum Elevation: {self.config_rotator['defaultHorizon']}°\n"
+            schedule += f"Minimum Apogee: {self.config_rotator['minApogee']}°\n"
 
         schedule += f"Number of passes: {len(td)//4}\n\n"
         schedule += table.get_string()
@@ -423,7 +453,9 @@ class Lorett_Orbital():
 
         if saveSchedule:
             try:
-                name = self.path + '/schedule/Schedule_' + '-'.join('-'.join('-'.join(str(datetime.now()).split()).split('.')).split(':')) + '.txt'
+                name = self.path + '/schedule/Schedule_' + \
+                    '-'.join('-'.join('-'.join(str(datetime.now()
+                                                   ).split()).split('.')).split(':')) + '.txt'
                 with open(name, 'w') as file:
                     file.write(schedule)
 
@@ -440,15 +472,13 @@ class Lorett_Orbital():
             return massout
         else:
             return passesForReturn
-        
-    def generateL2STrack(self, satellite: str, satPass: list, printTrack: bool = False, viewPlotTrack:bool = False, savePlotTrack:bool =False ):
+
+    def generateTrack(self, satellite: str, satPass: list, viewPlotTrack: bool = False, savePlotTrack: bool = False):
         """Функция для генерирования трек файла для L2s
         In:
                 str satellite - название спутника
 
-                list satPass - следующий пролет
-
-                bool printTrack - вывод трека в пролет 
+                list satPass - следующий пролет 
 
                 bool viewPlotTrack - отображение визуализации трека 
 
@@ -461,11 +491,10 @@ class Lorett_Orbital():
 
         orb = Orbital(satellite, nametle)
 
-        nametrack = self.path + f"/tracks/{satellite.replace(' ', '-')}_L2S_{satPass[0].strftime('%Y-%m-%dT%H-%M')}.txt"
+        nametrack = self.path + \
+            f"/tracks/{satellite.replace(' ', '-')}_L2S_{satPass[0].strftime('%Y-%m-%dT%H-%M')}.txt"
 
         with open(nametrack, "w") as file:
-
-            #print(str((satPass[1]-satPass[0])).rsplit('.', 1)[0])
 
             times = []
             coordsX = []
@@ -510,15 +539,15 @@ class Lorett_Orbital():
                 string = f"{strTime}   {sphCoords[0]}   {sphCoords[1]}\n"
                 file.write(string)
 
-                #print(string, end="")
 
-        if printTrack or viewPlotTrack or savePlotTrack:
-            self.printAndSavePlotTrack(coordsX, coordsY, satellite=satellite, start=startTime, viewPlotTrack=viewPlotTrack, savePlotTrack=savePlotTrack,  printTrack=printTrack)
+        if viewPlotTrack or savePlotTrack:
+            self.SavePlotTrack(coordsX, coordsY, satellite=satellite, start=startTime,
+                                       viewPlotTrack=viewPlotTrack, savePlotTrack=savePlotTrack)
 
         return satellite, list(zip(times, sphCoordsAZ, sphCoordsEL))
 
-    def printAndSavePlotTrack(self, coordsX: list, coordsY: list, satellite: str = "Untitled", start: str = "", viewPlotTrack: bool = False, savePlotTrack:bool =False, printTrack: bool = True) -> None:
-        """Функция для отрисовки трека и сохренения его в файл
+    def SavePlotTrack(self, coordsX: list, coordsY: list, satellite: str = "Untitled", start: str = "", viewPlotTrack: bool = False, savePlotTrack: bool = False) -> None:
+        """Функция для отрисовки трека и сохренения его в файл (работает только для стануий с перемещением облучателя в фокальной плоскости)
         In:
                 float coordsX[] - массив координат по оси х
 
@@ -537,12 +566,12 @@ class Lorett_Orbital():
                 None
         """
 
-        if viewPlotTrack or savePlotTrack:
+        if (viewPlotTrack or savePlotTrack) and self.station_type == 'l':
             ax = plt.gca()
             ax.set_aspect('equal', adjustable='box')
 
             # Plot mirror
-            circle = plt.Circle((0, 0), self.config_l['defaultRadius'],
+            circle = plt.Circle((0, 0), self.config_l_fokal['defaultRadius'],
                                 color=self.mirrorCircleColor)
             ax.add_patch(circle)
 
@@ -551,7 +580,8 @@ class Lorett_Orbital():
             fig.canvas.manager.set_window_title(satellite + "   " + start)
 
             # Generate OX and OY Axes
-            steps = list(round(i, 1) for i in arange(-self.config_l['defaultRadius'], self.config_l['defaultRadius'] + 0.1, 0.1))
+            steps = list(round(i, 1) for i in arange(
+                -self.config_l_fokal['defaultRadius'], self.config_l_fokal['defaultRadius'] + 0.1, 0.1))
 
             plt.title(satellite + "   " + start)
 
@@ -567,14 +597,18 @@ class Lorett_Orbital():
             plt.plot(coordsX[-1], coordsY[-1], ".r")
 
             # Plot north
-            plt.plot(0, self.config_l['defaultRadius'], "^r")
+            plt.plot(0, self.config_l_fokal['defaultRadius'], "^r")
 
             if savePlotTrack:
-                fileName = self.path + f"/tracksSchemes/TracksSchemes_{satellite.replace(' ', '-')}_{start.replace('   ', '-').replace(':', '-')}.png"
+                fileName = self.path + \
+                    f"/tracksSchemes/TracksSchemes_{satellite.replace(' ', '-')}_{start.replace('   ', '-').replace(':', '-')}.png"
                 plt.savefig(fileName)
 
             if viewPlotTrack:
                 plt.show()
+        else:
+            print("\033[31m {}" .format('Format is not recognized'))
+            return None
 
     def setCoordinates(self, lon: float, lat: float, height: float) -> None:
         '''Функция для установки местоположения станции
@@ -591,7 +625,7 @@ class Lorett_Orbital():
         self.lat = round(lat, 5)
         self.height = round(height, 5)
 
-    def nextPasses(self, printTrack: bool = False, viewPlotTrack:bool = False, savePlotTrack:bool =False):
+    def nextPasses(self, printTrack: bool = False, viewPlotTrack: bool = False, savePlotTrack: bool = False):
         '''Функция для расчета трека ближайщего следующего пролета
 
         In:
@@ -613,16 +647,23 @@ class Lorett_Orbital():
 
         for satPass, satPasTimeList in passesList:
 
-            td.append([count, satPass.satellite_name, *satPasTimeList, round(satPass.get_observer_look(satPasTimeList[2], self.lon, self.lat, self.height)[1], 2)])
+            td.append([count, satPass.satellite_name, *satPasTimeList, round(
+                satPass.get_observer_look(satPasTimeList[2], self.lon, self.lat, self.height)[1], 2)])
             td.append(("", "", "", "", "", ""))
 
             count += 1
 
         satPass, satPasTimeList = passesList[0]
 
-        if self.station_bend == 'l':
-            return self.generateL2STrack(satPass.satellite_name, satPasTimeList, printTrack=printTrack, viewPlotTrack=viewPlotTrack,  savePlotTrack=savePlotTrack)
-        else:
-            print("Format is not recognized")
-            return None
+        if self.station_type == 'l' or self.station_type == 'rot':
+            outTrack =  self.generateTrack(satPass.satellite_name, satPasTimeList, viewPlotTrack=viewPlotTrack,  savePlotTrack=savePlotTrack)
 
+            if printTrack:
+                print('         ',outTrack[0])
+                for stepp in outTrack[1]:
+                    print(stepp[0], stepp[1], stepp[2], sep='   ')
+
+            return outTrack
+        else:
+            print("\033[31m {}" .format('Format is not recognized'))
+            return None

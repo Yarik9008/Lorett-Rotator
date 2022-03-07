@@ -17,10 +17,17 @@ class Main_Lorett_Rotator:
         self.timeZone = 3
 
         self.logger = LorettLogging(self.path)
-
-        self.orbital = Lorett_Orbital(self.stationName, self.lon, self.lat, self.height, self.path, timeZone=self.timeZone)
+        try:
+            self.orbital = Lorett_Orbital(self.stationName, self.lon, self.lat, self.height, self.path, timeZone=self.timeZone)
+            self.logger.info('start Lorett_Orbital')
+        except:
+            self.logger.error('no start Lorett_Orbital')
         
-        # self.rotator = Rotator_SerialPort(self.logger)
+        try:
+            self.rotator = Rotator_SerialPort(self.logger)
+            self.logger.info('start Rotator_SerialPort')
+        except:
+            self.logger.error('no start Rotator_SerialPort')
 
 
 if __name__ == '__main__':
