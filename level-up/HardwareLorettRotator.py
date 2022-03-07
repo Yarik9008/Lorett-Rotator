@@ -6,11 +6,11 @@ from datetime import datetime
 
 class LorettLogging:
     '''Класс отвечающий за логирование. Логи пишуться в файл, так же выводться в консоль'''
-    def __init__(self):
+    def __init__(self, path: str):
         self.mylogs = logging.getLogger(__name__)
         self.mylogs.setLevel(logging.DEBUG)
         # обработчик записи в лог-файл
-        name = '/level-up/log/' + \
+        name = path + '/log/' + \
             '-'.join('-'.join('-'.join(str(datetime.now()).split()
                                        ).split('.')).split(':')) + '.log'
         self.file = logging.FileHandler(name)
@@ -50,54 +50,57 @@ class LorettLogging:
         self.mylogs.error(message)
 
 
-class Rotator_SerialPort:
-    '''Класс для взаимодействия с низкоуровневой частью приемного комплекса'''
-    def __init__(self,
-                 logger: LorettLogging = LorettLogging,
-                 port: str = list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0],
-                 bitrate: int = 9600,
-                 DEBUG: bool = False
-                 ):
-        self.DEBUG = DEBUG
-        # инициализация переменных
-        self.check_connect = False
-        self.logger = logger
-        # открытие порта 
-        self.serial_port = serial.Serial(
-            port=port,
-            baudrate=bitrate,
-            timeout=0.1)
+# class Rotator_SerialPort:
+#     '''Класс для взаимодействия с низкоуровневой частью приемного комплекса'''
+#     def __init__(self,
+#                  logger: LorettLogging,
+#                  port: str = '',
+#                  bitrate: int = 9600,
+#                  DEBUG: bool = False
+#                  ):
+
+#         # list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0]
+
+#         self.DEBUG = DEBUG
+#         # инициализация переменных
+#         self.check_connect = False
+#         self.logger = logger
+#         # открытие порта 
+#         self.serial_port = serial.Serial(
+#             port=port,
+#             baudrate=bitrate,
+#             timeout=0.1)
     
-    def rotate(self, azimut:float, height:float):
-        '''Поворот антенны на определенный угол'''
-        # отправка данных на ардуино
-        self.serial_port.write((f'$rotation {azimut} {height};\n').encode())
-        if self.DEBUG:
-            self.logger.debug('Send data: ' + f'$rotation {azimut} {height};\n')
-        if self.feedback() == 'OK':
-            return 'OK'
-        else:
-            return 'ERROR'
+#     def rotate(self, azimut:float, height:float):
+#         '''Поворот антенны на определенный угол'''
+#         # отправка данных на ардуино
+#         self.serial_port.write((f'$rotation {azimut} {height};\n').encode())
+#         if self.DEBUG:
+#             self.logger.debug('Send data: ' + f'$rotation {azimut} {height};\n')
+#         if self.feedback() == 'OK':
+#             return 'OK'
+#         else:
+#             return 'ERROR'
 
-    def homing(self):
-        ''' обнуление антенны по концевикам'''
-        # отправка данных на ардуино
-        self.serial_port.write((f'$homing;\n').encode())
-        if self.DEBUG:
-            self.logger.debug('Send data: $homing;\n')
-        if self.feedback() == 'OK':
-            return 'OK'
-        else:
-            return 'ERROR'
+#     def homing(self):
+#         ''' обнуление антенны по концевикам'''
+#         # отправка данных на ардуино
+#         self.serial_port.write((f'$homing;\n').encode())
+#         if self.DEBUG:
+#             self.logger.debug('Send data: $homing;\n')
+#         if self.feedback() == 'OK':
+#             return 'OK'
+#         else:
+#             return 'ERROR'
 
 
-    def feedback(self):
-        '''прием информации с аппарата'''
-        while data == None or data == b'':
-            data = self.serial_port.readline()
-        try:
-            dataout = str(data)[2:-1]
-        except:
-            self.logger.warning('Error converting data')
-            return 'ERROR'
-        return dataout
+#     def feedback(self):
+#         '''прием информации с аппарата'''
+#         while data == None or data == b'':
+#             data = self.serial_port.readline()
+#         try:
+#             dataout = str(data)[2:-1]
+#         except:
+#             self.logger.warning('Error converting data')
+#             return 'ERROR'
+#         return dataout

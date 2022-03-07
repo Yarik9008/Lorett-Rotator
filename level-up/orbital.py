@@ -294,12 +294,10 @@ class Lorett_Orbital():
         elif self.station_bend == 'apt':
             return orb.get_next_passes(start, length, self.lon, self.lat, self.height, tol, self.config_apt['defaultHorizon'])
 
-    def getSchedule(self, start: datetime, length: int, tol: float = 0.001, printTable: bool = False, saveSchedule: bool = False, returnTable: bool = False, returnScheduleNameSatellite:bool = False) -> PrettyTable:
+    def getSchedule(self, length: int, tol: float = 0.001, printTable: bool = False, saveSchedule: bool = False, returnTable: bool = False, returnScheduleNameSatellite:bool = False) -> PrettyTable:
         """Функция для составления расписания пролетов
 
         In:
-                datetime start  - время старта расчета 
-
                 int length - продолжительность расчета (часы)
 
                 float tol - шаг
@@ -319,6 +317,7 @@ class Lorett_Orbital():
 
         passes = {}
         allPasses = []
+        start = datetime.utcnow()
 
         th = ["Satellite", "DateTime", "Azimuth", "Elevation"]
         td = []
@@ -605,10 +604,9 @@ class Lorett_Orbital():
         Out:
             tuple (название спутника [время, азимут, высота]) - трек для отслеживания спутника'''
 
-        start = datetime.utcnow()
         length = 12
 
-        passesList = self.getSchedule(start, length, printTable=False)
+        passesList = self.getSchedule(length, printTable=False)
 
         count = 1
         td = []
