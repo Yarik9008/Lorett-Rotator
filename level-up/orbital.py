@@ -8,7 +8,10 @@ from requests import get, exceptions
 from bs4 import BeautifulSoup as bs
 from prettytable import PrettyTable
 import matplotlib.pyplot as plt
-from pprint import pprint
+
+
+# TODO сделать фильтрацию по минимальному апогею 
+# TODO сделать отрисовку пролетов не только для станций с перемещением облучателя в факальной плоскости 
 
 
 class Lorett_Orbital():
