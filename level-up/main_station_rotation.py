@@ -12,8 +12,8 @@ class Main_Lorett_Rotator:
 
         self.stationName = 'r8s' 
 
-        #self.path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
-        self.path = '/home/pi/Lorett-Rotator/level-up'
+        self.path = 'C:/Users/lynx9/YandexDisk/Lorett-Rotator/level-up'
+        # self.path = '/home/pi/Lorett-Rotator/level-up'
 
         self.lat = 55.3970
         self.lon = 55.3970
@@ -63,7 +63,6 @@ class Main_Lorett_Rotator:
             self.schedule = self.schedule[1:]
             # вычисляем время до пролета 
             sleep_time = satPas[1][0] - datetime.utcnow()
-            self.sleep_to_next(sleep_time,satPas[0])
             self.tracking(self.orbital.nextPasses())
             break
             

@@ -117,4 +117,7 @@ ENTER
 
 18. Откроется редактор задач. В конец файла дописываем 2 стороки
 
-@reboot sleep 10 && /snap/ngrok/37/ngrok start ssh --log=stdout > /dev/null &
+@reboot sleep 10 && /snap/ngrok/35/ngrok start ssh --log=stdout > /dev/null &
+
+
+@reboot python3 /home/ubu02/Документы
