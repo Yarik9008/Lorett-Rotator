@@ -78,8 +78,8 @@ class Rotator_SerialPort:
     
     def rotate(self, azimut:str, height:str):
 
-        azimut = float('.'.join(str(azimut).split(':')))
-        height = float('.'.join(str(height).split(':')))
+        azimut = str(float('.'.join(str(azimut).split(':'))))
+        height = str(float('.'.join(str(height).split(':'))))
         print(f'$rotation {azimut} {height};\n')
         '''Поворот антенны на определенный угол'''
         # отправка данных на ардуино
