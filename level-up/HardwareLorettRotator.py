@@ -82,7 +82,7 @@ class Rotator_SerialPort:
         self.serial_port.write((f'$rotation {azimut} {height};\n').encode())
         if self.DEBUG:
             self.logger.debug('Send data: ' + f'$rotation {azimut} {height};\n')
-        if self.feedback() == 'OK':
+        #if self.feedback() == 'OK':
             return True
         else:
             return False
@@ -93,7 +93,7 @@ class Rotator_SerialPort:
         self.serial_port.write((f'$homing;\n').encode())
         if self.DEBUG:
             self.logger.debug('Send data: $homing;\n')
-        if self.feedback() == 'OK':
+        #if self.feedback() == 'OK':
             return True
         else:
             return False
