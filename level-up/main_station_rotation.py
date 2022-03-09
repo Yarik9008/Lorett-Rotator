@@ -30,7 +30,7 @@ class Main_Lorett_Rotator:
             self.logger.error('no start Lorett_Orbital')
         
         try:
-            self.rotator = Rotator_SerialPort(self.logger)
+            self.rotator = Rotator_SerialPort(self.logger, DEBUG=True)
             self.logger.info('start Rotator_SerialPort')
         except:
             self.logger.error('no start Rotator_SerialPort')
