@@ -77,8 +77,9 @@ class Rotator_SerialPort:
             timeout=0.1)
     
     def rotate(self, azimut:str, height:str):
-        azimut = '.'.join(azimut.split(':'))
-        height = '.'.join(height.split(':'))
+
+        azimut = '.'.join(str(azimut).split(':'))
+        height = '.'.join(str(height).split(':'))
         '''Поворот антенны на определенный угол'''
         # отправка данных на ардуино
         self.serial_port.write((f'$rotation {azimut} {height};\n').encode())
