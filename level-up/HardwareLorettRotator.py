@@ -77,7 +77,7 @@ class Rotator_SerialPort:
             timeout=0.1)
     
     def rotate(self, azimut:str, height:str):
-        print(height)
+        #print(height)
         azimut = str(float('.'.join(azimut.split(':'))))
         height = str(float('.'.join(height.split(':'))))
         
