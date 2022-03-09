@@ -44,6 +44,7 @@ class Main_Lorett_Rotator:
 
         for steps in track[1]:
             self.logger.debug(f'Go to pozitions: az: {steps[1]} el: {steps[2]}')
+            self.rotator.rotate(steps[1], {steps[2]})
             sleep(1)
   
 

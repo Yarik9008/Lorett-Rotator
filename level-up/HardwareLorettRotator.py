@@ -59,7 +59,7 @@ class Rotator_SerialPort:
     '''Класс для взаимодействия с низкоуровневой частью приемного комплекса'''
     def __init__(self,
                  logger: LorettLogging,
-                 port: str = '',
+                 port: str = list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0],
                  bitrate: int = 9600,
                  DEBUG: bool = False
                  ):
