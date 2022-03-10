@@ -76,7 +76,7 @@ tunnels:
 
 (
 с нашим токеном вышлядит так:
-authtoken: 261sjOeufLODHlcVrGnxRE9vSKm_4DPjfpUV93JxaHrrhsZQv
+authtoken:261sjOeufLODHlcVrGnxRE9vSKm_4DPjfpUV93JxaHrrhsZQv
 
 region: eu
 web_addr: localhost:4040
@@ -117,7 +117,7 @@ ENTER
 
 18. Откроется редактор задач. В конец файла дописываем 2 стороки
 
-@reboot sleep 10 && /snap/ngrok/35/ngrok start ssh --log=stdout > /dev/null &
+@reboot sleep 10 && /snap/ngrok/37/ngrok start ssh --log=stdout > /dev/null &
 
 
 @reboot python3 /home/ubu02/Документы
