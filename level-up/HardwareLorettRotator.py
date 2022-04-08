@@ -94,46 +94,24 @@ class Rotator_SerialPort:
         #print(height)
         azimut = str(float('.'.join(azimut.split(':'))))
         height = str(float('.'.join(height.split(':'))))
-        
-        '''Поворот антенны на определенный угол'''
-        # отправка данных на ардуино
-        self.serial_port.write((f'$rotation {azimut} {height};\n').encode())
-        if self.DEBUG:
-            self.logger.debug('Send data: ' + f'$rotation {azimut} {height};\n')
-
-        #if self.feedback() == 'OK':
+        try:
+            '''Поворот антенны на определенный угол'''
+            # отправка данных на ардуино
+            self.serial_port.write((f'$navigate {azimut} {height};\n').encode())
+            if self.DEBUG:
+                self.logger.debug('Send data: ' + f'$navigate {azimut} {height};\n')
             return True
-
-        else:
+        except:
             return False
 
     def homing(self):
         ''' обнуление антенны по концевикам'''
-
-        # отправка данных на ардуино
-        self.serial_port.write((f'$homing;\n').encode())
-
-        if self.DEBUG:
-            self.logger.debug('Send data: $homing;\n')
-
-        #if self.feedback() == 'OK':
-            return True
-
-        else:
-            return False
-
-
-    def feedback(self):
-        '''прием информации с аппарата'''
-
-        while data == None or data == b'':
-            data = self.serial_port.readline()
-
         try:
-            dataout = str(data)[2:-1]
-
+            # отправка данных на ардуино
+            self.serial_port.write((f'$home;\n').encode())
+            
+            if self.DEBUG:
+                self.logger.debug('Send data: $home;\n')
+            return True
         except:
-            self.logger.warning('Error converting data')
-            return None
-
-        return dataout
+            return False
