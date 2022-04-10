@@ -1,7 +1,8 @@
+from datetime import timedelta
 from os import name
 from sched import scheduler
 from HardwareLorettRotator import *
-from orbital import *
+from lorettOrbital.orbital import *
 from threading import Thread
 from pprint import pprint
 from time import sleep
@@ -18,38 +19,55 @@ class Main_Lorett_Rotator:
         self.path = 'C:/Users/Yarik9008/YandexDisk/Lorett-Rotator/level-up'
         #self.path = '/home/pi/Desktop/Lorett-Rotator/level-up'
 
-        self.lat = 55.3970
-        self.lon = 55.3970
-        self.alt = 130 
+        self.lat = 54.52678
+        self.lon = 36.16776
+        self.alt = 0.160
         self.timeZone = 3
 
         self.schedule = []
 
         self.logger = LorettLogging(self.path)
         try:
-            self.orbital = scheduler(self.stationName, self.lon, self.lat, self.alt, self.path, timeZone=self.timeZone)
+            config = supportedStationTypes['r8s'].copy()
+            config['horizon'] = 15
+            config['minApogee'] = 40
+            self.orbital = Scheduler(self.stationName, self.lat, self.lon, self.alt, self.path, timeZone=self.timeZone, config=config)
+
             self.logger.info('start lorettOrbital.Scheduler')
         except:
             self.logger.error('no start lorettOrbital.Scheduler')
         
         try:
-            self.rotator = Rotator_SerialPort(self.logger, DEBUG=True)
+            self.rotator = Rotator_SerialPort(self.logger, DEBUG=True, port='COM19')
+            #self.rotator.homing()
             self.logger.info('start Rotator_SerialPort')
         except:
             self.logger.error('no start Rotator_SerialPort')
 
 
-        self.schedule += self.orbital.getSchedule(24, returnNameSatellite=True, printTable=True)
+        self.schedule += self.orbital.getSchedule(24, returnNameSatellite=True)
+        pprint(self.schedule)
 
-    def tracking(self,track:tuple):
+    def tracking(self,track:tuple, simulation=False):
         '''Функция для отслеживания спутника во время пролета'''
         self.logger.info(f'start tracking satellite {track[0]}')
 
-        for steps in track[1]:
+        self.logger.debug(f"Go to start pozition: az: {track[1][0][1]} el: {track[1][0][2]}")
+        self.rotator.rotate(track[1][0][1], track[1][0][2])
+        sleep(5)
+        """
+        while self.rotator.feedback() != "OK":
+            pass
+        """
+        for steps in track[1][1:]:
             self.logger.debug(f'Go to pozitions: az: {steps[1]} el: {steps[2]}')
             self.rotator.rotate(steps[1], steps[2])
             sleep(1)
   
+
+
+
+
 
     def sleep_to_next(self, time_sleep:datetime, nameSatellite:str):
         time_sleep = int(time_sleep.total_seconds())
@@ -66,16 +84,18 @@ class Main_Lorett_Rotator:
             
     def main(self):
         while True:
+            input('press any key..')
             # берем следующий пролет
             satPas = self.schedule[0]
             self.schedule = self.schedule[1:]
             # вычисляем время до пролета 
-            sleep_time = satPas[1][0] - datetime.utcnow()
-            self.sleep_to_next(sleep_time)
-            self.tracking(self.orbital.nextPasses())
-            break
-            
+            sleep_time = satPas[1][0] - datetime.utcnow() - timedelta(seconds=5)
+            self.sleep_to_next(sleep_time, satPas)
 
+            # 
+            # s[0])
+            self.tracking(self.orbital.nextPass())
+            self.rotator.homing()
 
 if __name__ == '__main__':
     station = Main_Lorett_Rotator()

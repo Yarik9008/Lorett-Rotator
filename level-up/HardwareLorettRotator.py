@@ -1,3 +1,4 @@
+from time import sleep
 import serial
 import logging
 from serial.tools import list_ports
@@ -72,7 +73,7 @@ class Rotator_SerialPort:
     def __init__(self,
                  logger: LorettLogging,
                  port: str = '',
-                 bitrate: int = 9600,
+                 bitrate: int = 115200,
                  DEBUG: bool = False
                  ):
 
@@ -97,9 +98,9 @@ class Rotator_SerialPort:
         try:
             '''Поворот антенны на определенный угол'''
             # отправка данных на ардуино
-            self.serial_port.write((f'$navigate {azimut} {height};\n').encode())
+            self.serial_port.write((f'$n {azimut} {height};\n').encode())
             if self.DEBUG:
-                self.logger.debug('Send data: ' + f'$navigate {azimut} {height};\n')
+                self.logger.debug('Send data: ' + f'$n {azimut} {height};\n')
             return True
         except:
             return False
@@ -108,10 +109,25 @@ class Rotator_SerialPort:
         ''' обнуление антенны по концевикам'''
         try:
             # отправка данных на ардуино
-            self.serial_port.write((f'$home;\n').encode())
-            
+            self.serial_port.write((f'$h;\n').encode())
+            sleep(10)
             if self.DEBUG:
-                self.logger.debug('Send data: $home;\n')
+                self.logger.debug('Send data: $h;\n')
             return True
         except:
             return False
+
+    def feedback(self):
+        '''прием информации с аппарата'''
+        data = None
+        while data == None or data == b'':
+            data = self.serial_port.readline()
+
+        try:
+            dataout = str(data)[2:]
+
+        except:
+            self.logger.warning('Error converting data')
+            return None
+
+        return dataout
