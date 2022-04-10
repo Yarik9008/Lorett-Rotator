@@ -16,8 +16,10 @@ class Main_Lorett_Rotator:
 
         self.stationName = 'r8s' 
 
-        #self.path = 'C:/Users/Yarik9008/YandexDisk/Lorett-Rotator/level-up'
-        self.path = '/home/ubuntu/Lorett-Rotator/level-up'
+        
+        
+        self.path = 'C:/Users/Yarik9008/YandexDisk/Lorett-Rotator/level-up'
+        #self.path = '/home/ubuntu/Lorett-Rotator/level-up'
 
         self.lat = 54.52678
         self.lon = 36.16776
@@ -38,7 +40,8 @@ class Main_Lorett_Rotator:
             self.logger.error('no start lorettOrbital.Scheduler')
         
         try:
-            port = list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0]
+            #port = list(filter(lambda x: '' in x, map(str, list_ports.comports())))[0].split(' - ')[0]
+            port = 'COM19'
             self.rotator = Rotator_SerialPort(self.logger, DEBUG=True, port=port)
             #self.rotator.homing()
             self.logger.info('start Rotator_SerialPort')
@@ -85,6 +88,7 @@ class Main_Lorett_Rotator:
             
     def main(self):
         while True:
+            
             input('press any key..')
             # берем следующий пролет
             satPas = self.schedule[0]
