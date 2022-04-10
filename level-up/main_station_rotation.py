@@ -38,7 +38,8 @@ class Main_Lorett_Rotator:
             self.logger.error('no start lorettOrbital.Scheduler')
         
         try:
-            self.rotator = Rotator_SerialPort(self.logger, DEBUG=True, port='COM19')
+            port = list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0]
+            self.rotator = Rotator_SerialPort(self.logger, DEBUG=True, port=port)
             #self.rotator.homing()
             self.logger.info('start Rotator_SerialPort')
         except:
