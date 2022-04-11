@@ -13,13 +13,10 @@ class Main_Lorett_Rotator:
     '''Класс адаптер для организации взаимодействия между отдельными компонентами'''
 
     def __init__(self) -> None:
-
         self.stationName = 'r8s' 
 
-        
-        
-        self.path = 'C:/Users/Yarik9008/YandexDisk/Lorett-Rotator/level-up'
-        #self.path = '/home/ubuntu/Lorett-Rotator/level-up'
+        #self.path = 'C:/Users/Yarik9008/YandexDisk/Lorett-Rotator/level-up'
+        self.path = '/home/pi/Lorett-Rotator/level-up'
 
         self.lat = 54.52678
         self.lon = 36.16776
