@@ -98,7 +98,7 @@ class Rotator_SerialPort:
         try:
             '''Поворот антенны на определенный угол'''
             # отправка данных на ардуино
-            self.serial_port.write((f'$n {azimut} {height};\n').encode())
+            self.serial_port.write((f'$nf {azimut} {height};\n').encode())
             if self.DEBUG:
                 self.logger.debug('Send data: ' + f'$nf {azimut} {height};\n')
             return True
