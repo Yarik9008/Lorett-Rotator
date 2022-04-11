@@ -7,7 +7,7 @@ from threading import Thread
 from pprint import pprint
 from time import sleep
 
-simulat = True
+simulat = False
 
 class Main_Lorett_Rotator:
     '''Класс адаптер для организации взаимодействия между отдельными компонентами'''
