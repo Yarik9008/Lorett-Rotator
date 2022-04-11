@@ -86,7 +86,7 @@ class Main_Lorett_Rotator:
     def main(self):
         while True:
             
-            input('press any key..')
+            #input('press any key..')
             # берем следующий пролет
             satPas = self.schedule[0]
             self.schedule = self.schedule[1:]
