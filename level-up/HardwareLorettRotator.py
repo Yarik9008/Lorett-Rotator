@@ -100,7 +100,7 @@ class Rotator_SerialPort:
             # отправка данных на ардуино
             self.serial_port.write((f'$n {azimut} {height};\n').encode())
             if self.DEBUG:
-                self.logger.debug('Send data: ' + f'$n {azimut} {height};\n')
+                self.logger.debug('Send data: ' + f'$nf {azimut} {height};\n')
             return True
         except:
             return False
