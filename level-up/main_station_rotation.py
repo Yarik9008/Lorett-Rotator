@@ -7,7 +7,7 @@ from threading import Thread
 from pprint import pprint
 from time import sleep
 
-
+simulat = True
 
 class Main_Lorett_Rotator:
     '''Класс адаптер для организации взаимодействия между отдельными компонентами'''
@@ -92,7 +92,8 @@ class Main_Lorett_Rotator:
             self.schedule = self.schedule[1:]
             # вычисляем время до пролета 
             sleep_time = satPas[1][0] - datetime.utcnow() - timedelta(seconds=5)
-            self.sleep_to_next(sleep_time, satPas)
+            if not simulat:
+                self.sleep_to_next(sleep_time, satPas)
 
             # 
             # s[0])
