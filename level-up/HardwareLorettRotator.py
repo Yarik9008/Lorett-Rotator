@@ -35,10 +35,10 @@ class LorettLogging:
         # инициализация обработчиков
         self.mylogs.addHandler(self.file)
         self.mylogs.addHandler(self.stream)
-        
+
         coloredlogs.install(level=logging.DEBUG, logger=self.mylogs,
                             fmt='%(asctime)s [%(levelname)s] - %(message)s')
-                            
+
         self.mylogs.info('start-logging')
 
 
@@ -69,53 +69,151 @@ class LorettLogging:
 
 class Rotator_SerialPort:
     '''Класс для взаимодействия с низкоуровневой частью приемного комплекса'''
-    
+
     def __init__(self,
                  logger: LorettLogging,
                  port: str = '',
-                 bitrate: int = 115200,
+                 bitrate: int = 57600,
                  DEBUG: bool = False
                  ):
 
-        # list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0]
+        #port = list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0]
 
         self.DEBUG = DEBUG
-        
+
         self.check_connect = False
         self.logger = logger
 
-        # открытие порта 
+        # открытие порта
         self.serial_port = serial.Serial(
             port=port,
             baudrate=bitrate,
             timeout=0.1)
-    
 
-    def rotate(self, azimut:str, height:str):
-        #print(height)
-        azimut = str(float('.'.join(azimut.split(':'))))
-        height = str(float('.'.join(height.split(':'))))
+
+    def navigate(self, azimut:float, elevation:float, fast=True):
+        '''Поворот антенны на определенный угол'''
         try:
-            '''Поворот антенны на определенный угол'''
-            # отправка данных на ардуино
-            self.serial_port.write((f'$nf {azimut} {height};\n').encode())
-            if self.DEBUG:
-                self.logger.debug('Send data: ' + f'$nf {azimut} {height};\n')
+            if fast:
+                self.serial_port.write((f'$nf {azimut} {elevation};\n').encode())
+                if self.DEBUG:
+                    self.logger.debug('Send data: ' + f'$nf {azimut} {elevation};\n')
+            else: 
+                self.serial_port.write((f'$n {azimut} {elevation};\n').encode())
+                if self.DEBUG:
+                    self.logger.debug('Send data: ' + f'$n {azimut} {elevation};\n')
+
+            data = ''
+            while data != 'OK':
+                data = str(self.feedback())[:-5]
+            
             return True
+
         except:
             return False
 
-    def homing(self):
+    def navigateDynamic(self, azimut : float, elevation : float, speed : float):
+        '''Поворот антенны на определенный угол'''
+        try:
+            self.serial_port.write((f'$nd {azimut} {elevation} {speed};\n').encode())
+            if self.DEBUG:
+                self.logger.debug(f'Send data: $nd {azimut} {elevation} {speed};\n')
+
+            data = ''
+            while data != 'OK':
+                data = str(self.feedback())[:-5]
+            
+            return True
+
+        except:
+            return False
+
+    def navigateRel(self, azimut:float, elevation:float, corrections=False):
+        '''Поворот антенны на определенный угол относительно текущего положения'''
+        try:
+            if corrections:
+                self.serial_port.write((f'$nrc {azimut} {elevation};\n').encode())
+
+                if self.DEBUG:
+                    self.logger.debug('Send data: ' + f'$nrc {azimut} {elevation};\n')
+                    
+            else:
+                self.serial_port.write((f'$nr {azimut} {elevation};\n').encode())
+
+                if self.DEBUG:
+                    self.logger.debug('Send data: ' + f'$nr {azimut} {elevation};\n')                
+
+            data = ''
+            while data != 'OK':
+                data = str(self.feedback())[:-5]
+
+            return True
+
+        except:
+            return False
+
+    def comeBack(self):
+        '''Поворот антенны на определенный угол'''
+        try:
+            self.serial_port.write((f'$cb;\n').encode())
+            if self.DEBUG:
+                self.logger.debug(f'Send data: $cb;\n')
+
+            data = ''
+            while data != 'OK':
+                data = str(self.feedback())[:-5]
+            
+            return True
+
+        except:
+            return False
+
+    def goHome(self):
         ''' обнуление антенны по концевикам'''
         try:
             # отправка данных на ардуино
-            self.serial_port.write((f'$h;\n').encode())
-            sleep(10)
+            data = '$h;\n'
+            print('go home')
+            self.serial_port.write(data.encode())
+
             if self.DEBUG:
-                self.logger.debug('Send data: $h;\n')
+                self.logger.debug(f'Send data: {data}')
+
+            data = ''
+            while data != 'OK':
+                data = str(self.feedback())[:-5]
+
+            print('end home')
+
             return True
+            
         except:
             return False
+
+    def saveCorrection(self):
+        try:
+            self.serial_port.write(f'$s;\n'.encode())
+            self.logger.info('Save correction position')
+
+            return True
+
+        except:
+            self.logger.error('Error save correction position')  
+
+            return False
+
+    def clearCorrection(self):
+        try:
+            self.serial_port.write(f'$c;\n'.encode())
+            self.logger.info('Clear correction position')
+
+            return True
+
+        except:
+            self.logger.error('Error clear correction position')  
+
+            return False
+    
 
     def feedback(self):
         '''прием информации с аппарата'''
