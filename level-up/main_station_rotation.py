@@ -14,7 +14,7 @@ def isNumber(num : str):
         float(num)
     except ValueError:
         isNum = False
-    return isNum
+    return isNum 
 
 class Main_Lorett_Rotator:
     '''Класс адаптер для организации взаимодействия между отдельными компонентами'''
@@ -23,8 +23,8 @@ class Main_Lorett_Rotator:
 
         self.stationName = 'r8s'
 
-        self.path = '.'
-        #self.path = '/home/pi/Lorett-Rotator/level-up'
+        #self.path = 'C:/Users/Yarik9008/YandexDisk/Lorett-Rotator/level-up'
+        self.path = '/home/pi/Lorett-Rotator/level-up'
 
         self.lat = 54.52678
         self.lon = 36.16776
@@ -49,7 +49,7 @@ class Main_Lorett_Rotator:
         try:
             port = list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0]
             #port = '/dev/ttyACM6'
-            #port = 'COM3'
+            #port = 'COM18'
             self.rotator = Rotator_SerialPort(self.logger, DEBUG=True, port=port)
             #self.rotator.homing()
             self.logger.info('start Rotator_SerialPort')
