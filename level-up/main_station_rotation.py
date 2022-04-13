@@ -24,7 +24,7 @@ class Main_Lorett_Rotator:
         self.stationName = 'r8s'
 
         self.path = '.'
-        #self.path = '/home/ubuntu/Lorett-Rotator/level-up'
+        #self.path = '/home/pi/Lorett-Rotator/level-up'
 
         self.lat = 54.52678
         self.lon = 36.16776
