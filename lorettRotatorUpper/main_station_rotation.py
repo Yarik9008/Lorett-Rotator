@@ -14,7 +14,7 @@ def isNumber(num : str):
         float(num)
     except ValueError:
         isNum = False
-    return isNum 
+    return isNum
 
 class Main_Lorett_Rotator:
     '''Класс адаптер для организации взаимодействия между отдельными компонентами'''
@@ -23,8 +23,8 @@ class Main_Lorett_Rotator:
 
         self.stationName = 'r8s'
 
-        self.path = 'C:/Users/Yarik9008/YandexDisk/Lorett-Rotator/level-up'
-        #self.path = '/home/pi/Lorett-Rotator/level-up'
+        self.path = '.'
+        #self.path = '/home/ubuntu/Lorett-Rotator/level-up'
 
         self.lat = 54.52678
         self.lon = 36.16776
@@ -37,8 +37,8 @@ class Main_Lorett_Rotator:
         
         try:
             config = supportedStationTypes['r8s'].copy()
-            config['horizon'] = 15
-            config['minApogee'] = 60
+            config['horizon'] = 70
+            config['minApogee'] = 80
             self.orbital = Scheduler(self.stationName, self.lat, self.lon, self.alt, self.path, timeZone=self.timeZone, config=config)
 
             self.logger.info('start lorettOrbital.Scheduler')
@@ -47,9 +47,9 @@ class Main_Lorett_Rotator:
             self.logger.error('no start lorettOrbital.Scheduler')
 
         try:
-            port = list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0]
+            #port = list(filter(lambda x: 'ACM' in x, map(str, list_ports.comports())))[0].split(' - ')[0]
             #port = '/dev/ttyACM6'
-            port = 'COM16'
+            port = 'COM3'
             self.rotator = Rotator_SerialPort(self.logger, DEBUG=True, port=port)
             #self.rotator.homing()
             self.logger.info('start Rotator_SerialPort')
@@ -147,7 +147,7 @@ class Main_Lorett_Rotator:
 
             # вычисляем время до пролета
             sleep_time = satPas[1][0] - datetime.utcnow() - timedelta(seconds=15)
-            self.sleep_to_next(sleep_time, satPas)
+            #self.sleep_to_next(sleep_time, satPas)
             #sleep(20)
             track = self.orbital.nextPass()
             track = (track[0], [[i[0], float(i[1]), float(i[2])]  for i in track[1]])
